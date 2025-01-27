@@ -43,7 +43,10 @@ for a_model_name in model_list:
     for a_en in range(repeat_num):
         key = 'trained_all_model_' + a_model_name + '_ensemble_' + str(a_en)
 
-        model = torch.load('./trained_models/' + key)
+        if torch.cuda.is_available():
+            model = torch.load('./trained_models/' + key)
+        else:
+            model = torch.load('./trained_models/' + key, map_location=torch.device('cpu'))
         model.eval()
         deep_model_list.append(model)
 
@@ -60,7 +63,10 @@ seq_list = np.array(seq_list)
 ensemble_counter = 0
 for ensemble_id in range(ensemble_num):
 
-    AMP_model = deep_model_list[ensemble_id].cuda().eval()
+    if torch.cuda.is_available():
+        AMP_model = deep_model_list[ensemble_id].cuda().eval()
+    else:
+        AMP_model = deep_model_list[ensemble_id].eval()
 
     data_len = len(seq_list)
     batch_size = 3000  # change according to your GPU memory
@@ -71,7 +77,10 @@ for ensemble_id in range(ensemble_num):
         seq_batch = seq_list[i * batch_size:(i + 1) * batch_size]
         seq_rep, _, _ = onehot_encoding(seq_batch, max_len, word2idx)
 
-        X_seq = torch.LongTensor(seq_rep).cuda()
+        if torch.cuda.is_available():
+            X_seq = torch.LongTensor(seq_rep).cuda()
+        else:
+            X_seq = torch.LongTensor(seq_rep)
 
         AMP_pred_batch = AMP_model(X_seq).cpu().detach().numpy()
         AMP_pred_batch = 10 ** (6 - AMP_pred_batch)  # transform back to MICs
