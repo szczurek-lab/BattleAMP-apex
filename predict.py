@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 import math
 import argparse
+from benchmark_utils import read_fasta
 
 col = ['E. coli ATCC11775', 'P. aeruginosa PAO1', 'P. aeruginosa PA14', 'S. aureus ATCC12600', 'E. coli AIG221',
        'E. coli AIG222', 'K. pneumoniae ATCC13883', 'A. baumannii ATCC19606', 'A. muciniphila ATCC BAA-835',
@@ -67,15 +68,18 @@ if __name__ == '__main__':
             model.eval()
             deep_model_list.append(model)
 
-    seq_list = []
-    f = open(input_path, 'r')
-    lines = f.readlines()
-    f.close()
+    # seq_list = []
+    # f = open(input_path, 'r')
+    # lines = f.readlines()
+    # f.close()
+    #
+    # for line in lines:
+    #     seq_list.append(line.strip('\n').strip('\r'))
+    fasta_dict = read_fasta(input_path)
+    id_list = list(fasta_dict.keys())
+    seq_list = list(fasta_dict.values())
 
-    for line in lines:
-        seq_list.append(line.strip('\n').strip('\r'))
-
-    seq_list = np.array(seq_list)
+    # seq_list = np.array(seq_list)
 
     ensemble_counter = 0
     for ensemble_id in range(ensemble_num):
@@ -124,6 +128,7 @@ if __name__ == '__main__':
 
     df = df[selected_cols].mean(axis=1).reset_index()
     df.columns = ['Sequence', 'MIC']
+    df['Sequence_id'] = id_list
     df['MIC_unit'] = 'uM'
     print(df)
 
