@@ -132,4 +132,4 @@ if __name__ == '__main__':
     df['MIC_unit'] = 'uM'
     print(df)
 
-    df.to_csv(output_path)
+    df.to_csv(output_path, sep='\t')
