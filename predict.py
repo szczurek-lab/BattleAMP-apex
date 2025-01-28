@@ -76,6 +76,7 @@ if __name__ == '__main__':
     # for line in lines:
     #     seq_list.append(line.strip('\n').strip('\r'))
     fasta_dict = read_fasta(input_path)
+    reversed_fasta_dict = {v: k for k, v in fasta_dict.items()}
     id_list = list(fasta_dict.keys())
     seq_list = list(fasta_dict.values())
 
@@ -126,10 +127,18 @@ if __name__ == '__main__':
     elif benchmark_mode == 'saureus':
         selected_cols = saureus_cols
 
-    df = df[selected_cols].mean(axis=1).reset_index()
-    df.columns = ['Sequence', 'MIC']
-    df['Sequence_id'] = id_list
+    if benchmark_mode == 'min':
+        min_strain = df.idxmin(axis=1).values.tolist()
+        df = df.min(axis=1).reset_index()
+        df.columns = ['Sequence', 'MIC']
+        df['Strain'] = min_strain
+    else:
+        df = df[selected_cols].mean(axis=1).reset_index()
+        df.columns = ['Sequence', 'MIC']
+
+
+    df['Sequence_id'] = df['Sequence'].map(reversed_fasta_dict).head()
     df['MIC_unit'] = 'uM'
-    print(df)
+    # print(df)
 
     df.to_csv(output_path, sep='\t')
