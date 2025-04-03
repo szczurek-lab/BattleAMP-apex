@@ -1,6 +1,8 @@
 import csv
 
 import numpy as np
+import pandas as pd
+from typing import Dict, List
 
 
 def make_vocab():
@@ -111,3 +113,24 @@ def onehot_encoding(seq_list_, max_len, word2idx):
 
 
     return np.array(X), np.array(AA_mask), np.array(nonAA_mask)
+
+def extract_minimal_predictions(df: pd.DataFrame, id_mapping: Dict) -> pd.DataFrame:
+    min_strain = df.idxmin(axis=1).values.tolist()
+    df = df.min(axis=1).reset_index()
+
+    df.columns = ['Sequence', 'MIC']
+    df['Strain'] = min_strain
+    df['Sequence_id'] = df['Sequence'].map(id_mapping)
+    df['MIC_unit'] = 'uM'
+
+    return df
+
+def extract_species_predictions(df: pd.DataFrame, id_mapping: Dict,
+                                selected_cols: List[str]) -> pd.DataFrame:
+    df = df[selected_cols].mean(axis=1).reset_index()
+
+    df.columns = ['Sequence', 'MIC']
+    df['Sequence_id'] = df['Sequence'].map(id_mapping)
+    df['MIC_unit'] = 'uM'
+
+    return df

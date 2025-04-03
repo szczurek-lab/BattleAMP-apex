@@ -1,4 +1,4 @@
-
+from copy import deepcopy
 from utils import *
 # from optparse import OptionParser
 import pandas as pd
@@ -25,7 +25,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_path', type=str)
     parser.add_argument('output_path', type=str)
-    parser.add_argument('benchmark_mode', choices=['min', 'ecoli', 'saureus'])
+    parser.add_argument(
+        'benchmark_mode', choices=['min', 'ecoli', 'saureus', 'multioutput']
+    )
     args = parser.parse_args()
     input_path = args.input_path
     output_path = args.output_path
@@ -120,25 +122,36 @@ if __name__ == '__main__':
 
     AMP_pred = AMP_sum / float(ensemble_counter)
 
-    df = pd.DataFrame(data=AMP_pred, columns=col, index=seq_list)
+    df_raw = pd.DataFrame(data=AMP_pred, columns=col, index=seq_list)
 
-    if benchmark_mode == 'ecoli':
-        selected_cols = ecoli_cols
-    elif benchmark_mode == 'saureus':
-        selected_cols = saureus_cols
+    if benchmark_mode != 'multioutput':
+        if benchmark_mode == 'min':
+            df = extract_minimal_predictions(
+                deepcopy(df_raw), reversed_fasta_dict
+            )
+        elif benchmark_mode == 'ecoli':
+            df = extract_species_predictions(
+                deepcopy(df_raw), reversed_fasta_dict, ecoli_cols
+            )
+        else:
+            df = extract_species_predictions(
+                deepcopy(df_raw), reversed_fasta_dict, saureus_cols
+            )
 
-    if benchmark_mode == 'min':
-        min_strain = df.idxmin(axis=1).values.tolist()
-        df = df.min(axis=1).reset_index()
-        df.columns = ['Sequence', 'MIC']
-        df['Strain'] = min_strain
+        df.to_csv(output_path, sep='\t')
+
     else:
-        df = df[selected_cols].mean(axis=1).reset_index()
-        df.columns = ['Sequence', 'MIC']
+        df_min = extract_minimal_predictions(
+            deepcopy(df_raw), reversed_fasta_dict
+        )
+        df_min.to_csv(f"{output_path}-min", sep='\t')
 
+        df_ecoli = extract_species_predictions(
+            deepcopy(df_raw), reversed_fasta_dict, ecoli_cols
+        )
+        df_ecoli.to_csv(f"{output_path}-ecoli", sep='\t')
 
-    df['Sequence_id'] = df['Sequence'].map(reversed_fasta_dict).head()
-    df['MIC_unit'] = 'uM'
-    # print(df)
-
-    df.to_csv(output_path, sep='\t')
+        df_saureus = extract_species_predictions(
+            deepcopy(df_raw), reversed_fasta_dict, saureus_cols
+        )
+        df_saureus.to_csv(f"{output_path}-saureus", sep='\t')
