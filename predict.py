@@ -5,7 +5,9 @@ import pandas as pd
 import torch
 import math
 import argparse
-from benchmark_utils import read_fasta
+from benchmark_utils import (
+    extract_minimal_predictions, extract_species_predictions, read_fasta
+)
 
 col = ['E. coli ATCC11775', 'P. aeruginosa PAO1', 'P. aeruginosa PA14', 'S. aureus ATCC12600', 'E. coli AIG221',
        'E. coli AIG222', 'K. pneumoniae ATCC13883', 'A. baumannii ATCC19606', 'A. muciniphila ATCC BAA-835',
