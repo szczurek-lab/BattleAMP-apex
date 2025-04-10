@@ -39,7 +39,8 @@ if __name__ == '__main__':
             'kpneumoniae',
             'abaumannii',
             'paeruginosa',
-            'multioutput'
+            'multioutput',
+            'all'
         ]
     )
     args = parser.parse_args()
@@ -145,7 +146,7 @@ if __name__ == '__main__':
 
     df_raw = pd.DataFrame(data=AMP_pred, columns=col, index=seq_list)
 
-    if benchmark_mode != 'multioutput':
+    if benchmark_mode != 'multioutput' and benchmark_mode != 'all':
         # Define a dictionary for mode to column mapping
         mode_to_columns = {
             'min': None,  # Special case, no specific strain columns
@@ -167,7 +168,8 @@ if __name__ == '__main__':
         # Save the result
         df.to_csv(output_path, sep='\t')
 
-    else:
+    elif benchmark_mode == 'multioutput':
+
         # Multi-output case: save different strain-specific results
         output_path = output_path.replace(".tsv", "")
         modes = ['min', 'ecoli', 'saureus', 'kpneumoniae', 'abaumannii', 'paeruginosa']
@@ -181,3 +183,8 @@ if __name__ == '__main__':
                     deepcopy(df_raw), reversed_fasta_dict, bact_columns[mode]
                 )
             df.to_csv(f"{output_path}-{mode}.tsv", sep='\t')
+
+    elif benchmark_mode == 'all':
+        # All strains mode: generate a combined file for all strains
+        output_path = output_path.replace(".tsv", "-all.tsv")
+        df_raw.to_csv(output_path, sep='\t')
