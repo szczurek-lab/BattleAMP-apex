@@ -21,6 +21,10 @@ col = ['E. coli ATCC11775', 'P. aeruginosa PAO1', 'P. aeruginosa PA14', 'S. aure
        'L. monocytogenes ATCC 19111 (BEIRES NR-106)']
 ecoli_cols = ['E. coli ATCC11775', 'E. coli AIG222', 'E. coli AIG221'] # Nissle excluded as non-virulent
 saureus_cols = ['S. aureus ATCC12600', 'S. aureus (ATCC BAA-1556) - MRSA']
+paeruginosa_cols = ['P. aeruginosa PAO1', 'P. aeruginosa PA14']
+abaumannii_cols = ['A. baumannii ATCC19606']
+kpneumoniae_cols = ['K. pneumoniae ATCC13883']
+
 
 if __name__ == '__main__':
 
@@ -28,14 +32,29 @@ if __name__ == '__main__':
     parser.add_argument('input_path', type=str)
     parser.add_argument('output_path', type=str)
     parser.add_argument(
-        'benchmark_mode', choices=['min', 'ecoli', 'saureus', 'multioutput']
+        'benchmark_mode', choices=[
+            'min',
+            'ecoli',
+            'saureus',
+            'kpneumoniae',
+            'abaumannii',
+            'paeruginosa',
+            'multioutput'
+        ]
     )
     args = parser.parse_args()
     input_path = args.input_path
     output_path = args.output_path
     benchmark_mode = args.benchmark_mode
 
-
+    # Define strain columns
+    bact_columns = {
+        'ecoli': ecoli_cols,
+        'saureus': saureus_cols,
+        'paeruginosa': paeruginosa_cols,
+        'abaumannii': abaumannii_cols,
+        'kpneumoniae': kpneumoniae_cols,
+    }
 
 
     max_len = 52  # maximun peptide length
@@ -127,34 +146,38 @@ if __name__ == '__main__':
     df_raw = pd.DataFrame(data=AMP_pred, columns=col, index=seq_list)
 
     if benchmark_mode != 'multioutput':
+        # Define a dictionary for mode to column mapping
+        mode_to_columns = {
+            'min': None,  # Special case, no specific strain columns
+            'ecoli': bact_columns['ecoli'],
+            'saureus': bact_columns['saureus'],
+            'kpneumoniae': bact_columns['kpneumoniae'],
+            'abaumannii': bact_columns['abaumannii'],
+            'paeruginosa': bact_columns['paeruginosa']
+        }
+
+        # Handle 'min' case separately, which doesn't need strain columns
         if benchmark_mode == 'min':
-            df = extract_minimal_predictions(
-                deepcopy(df_raw), reversed_fasta_dict
-            )
-        elif benchmark_mode == 'ecoli':
-            df = extract_species_predictions(
-                deepcopy(df_raw), reversed_fasta_dict, ecoli_cols
-            )
+            df = extract_minimal_predictions(deepcopy(df_raw), reversed_fasta_dict)
         else:
             df = extract_species_predictions(
-                deepcopy(df_raw), reversed_fasta_dict, saureus_cols
+                deepcopy(df_raw), reversed_fasta_dict, mode_to_columns[benchmark_mode]
             )
 
+        # Save the result
         df.to_csv(output_path, sep='\t')
 
     else:
+        # Multi-output case: save different strain-specific results
         output_path = output_path.replace(".tsv", "")
-        df_min = extract_minimal_predictions(
-            deepcopy(df_raw), reversed_fasta_dict
-        )
-        df_min.to_csv(f"{output_path}-min.tsv", sep='\t')
+        modes = ['min', 'ecoli', 'saureus', 'kpneumoniae', 'abaumannii', 'paeruginosa']
 
-        df_ecoli = extract_species_predictions(
-            deepcopy(df_raw), reversed_fasta_dict, ecoli_cols
-        )
-        df_ecoli.to_csv(f"{output_path}-ecoli.tsv", sep='\t')
-
-        df_saureus = extract_species_predictions(
-            deepcopy(df_raw), reversed_fasta_dict, saureus_cols
-        )
-        df_saureus.to_csv(f"{output_path}-saureus.tsv", sep='\t')
+        # Loop over modes to generate and save each output file
+        for mode in modes:
+            if mode == 'min':
+                df = extract_minimal_predictions(deepcopy(df_raw), reversed_fasta_dict)
+            else:
+                df = extract_species_predictions(
+                    deepcopy(df_raw), reversed_fasta_dict, bact_columns[mode]
+                )
+            df.to_csv(f"{output_path}-{mode}.tsv", sep='\t')
