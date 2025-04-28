@@ -169,7 +169,7 @@ if __name__ == '__main__':
         df.to_csv(output_path, sep='\t')
 
     elif benchmark_mode == 'multioutput':
-
+        df_raw.to_csv(output_path, sep='\t')
         # Multi-output case: save different strain-specific results
         output_path = output_path.replace(".tsv", "")
         modes = ['min', 'ecoli', 'saureus', 'kpneumoniae', 'abaumannii', 'paeruginosa']
