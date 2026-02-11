@@ -86,9 +86,9 @@ if __name__ == '__main__':
             key = 'trained_all_model_' + a_model_name + '_ensemble_' + str(a_en)
 
             if torch.cuda.is_available():
-                model = torch.load('./trained_models/' + key)
+                model = torch.load('./trained_models/' + key, weights_only=False)
             else:
-                model = torch.load('./trained_models/' + key, map_location=torch.device('cpu'))
+                model = torch.load('./trained_models/' + key, map_location=torch.device('cpu'), weights_only=False)
             model.eval()
             deep_model_list.append(model)
 
