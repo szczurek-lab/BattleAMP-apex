@@ -1,0 +1,25 @@
+name: apex
+version: 1.0.0
+type: regressor
+length_min: 1
+length_max: 50
+gpu_required: true
+framework: gru-attention-ensemble
+
+# APEX is a multi-output model: a single inference pass predicts MIC values
+# across 34 bacterial strains simultaneously.  inference.sh runs once and
+# writes a variant-specific predictions file for each entry below.
+multioutput: true
+variants:
+  - name: apex-min
+    predictions_file: predictions-min.tsv
+  - name: apex-ecoli
+    predictions_file: predictions-ecoli.tsv
+  - name: apex-saureus
+    predictions_file: predictions-saureus.tsv
+  - name: apex-kpneumoniae
+    predictions_file: predictions-kpneumoniae.tsv
+  - name: apex-abaumannii
+    predictions_file: predictions-abaumannii.tsv
+  - name: apex-paeruginosa
+    predictions_file: predictions-paeruginosa.tsv
