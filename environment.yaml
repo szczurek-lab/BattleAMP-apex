@@ -1,0 +1,10 @@
+# APEX conda environment for BattleAMP
+# setup.sh pins the exact numpy/pandas/scikit-learn/scipy/torch versions
+# inside this env; only the interpreter and pip are declared here.
+name: apex
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
