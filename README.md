@@ -33,6 +33,26 @@ All variants share the same length constraint of 50 amino acids. APEX predicts M
 micromolar units; for comparison with ground truth labels, values are converted to the
 benchmark target unit using per-peptide molecular weights computed from residue masses.
 
+## Training data
+
+`training_data/APEXDB.csv` is the dataset APEX was trained on, fetched unmodified from
+`app/frontend/public/APEXDB.csv` of the upstream repository at commit
+`203055125196eee0b0f3c456335d3e9aede0e942`, on 2026-09-02.
+
+1,736 peptides, 2 to 50 residues, standard 20 amino acids only, with MIC values against 11
+strains. The `Group (APEX training)` column carries the authors' own split:
+
+| Group | Peptides | Role |
+|---|---|---|
+| `CV` | 1,388 | cross-validation |
+| `Ind` | 348 | independent test |
+
+The strain columns cover every benchmarked variant: A. baumannii ATCC 19606, three E. coli
+strains, K. pneumoniae ATCC 13883, two P. aeruginosa strains and two S. aureus strains.
+
+The same directory in the upstream repository also holds `db.csv`, which contains placeholder
+sequences rather than data, and is not kept.
+
 ## Requirements
 
 - Python 3.10
@@ -81,4 +101,6 @@ variant-specific prediction files.
 
 ## License
 
-Same as the original APEX repository.
+Penn Software APEX, Copyright (C) 2022 The Trustees of the University of
+Pennsylvania. Use is limited to non-profit research purposes. The full notice is in
+`LICENSE`, reproduced from the upstream repository as its terms require.
